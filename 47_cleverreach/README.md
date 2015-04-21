@@ -1,2 +1,2 @@
-Sync-Tool
-===================
+Sync-Tool Contao Newsletter => cleverreach.de
+=============================================
