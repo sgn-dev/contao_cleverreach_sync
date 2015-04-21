@@ -8,3 +8,7 @@ Das Sync-Tool ermöglicht die Synchronisation von Newsletter-Verteilern und Abon
 
 ## Abhänigkeiten ##
 * NamespaceClassLoader: https://github.com/terminal42/contao-NamespaceClassLoader
+
+## Installation ##
+*   Test
+*   Test2
