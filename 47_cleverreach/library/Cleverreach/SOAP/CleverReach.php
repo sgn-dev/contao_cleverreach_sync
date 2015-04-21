@@ -37,21 +37,12 @@ class CleverReach extends \Backend{
             $this->soap = new \SoapClient(\Config::get('clr_wsdlUrl'));
 
         } catch (Exception $e) {
-            $this->log("No API-Key or WSDL-File for Cleverreach specified in Settings", 'CleverReach::construct', TL_ERROR);
+            $this->log("Kein API-Key oder WSDL-File für cleverreach.de in den Einstellungen hinterlegt", 'CleverReach::construct', TL_ERROR);
         }
 
         parent::__construct();
     }
 
-    public function groupGetList()
-    {
-        $result = $this->soap->groupGetList($this->apiKey);
-        if($result->status=="SUCCESS"){					//successfull list call
-            var_dump($result->data);
-        }else{											//lists call failed
-            var_dump($result->message);					//display error as TEXT
-        }
-    }
 
     /**
      * Add new Recipient to a defined List
@@ -83,13 +74,14 @@ class CleverReach extends \Backend{
 
                 return false;
             }
+        } else {
+            $this->log("Fehler beim Hinzufügen von  " . $strEmail . " zu cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::addRecipient", TL_ERROR);
+            return false;
         }
-        $this->log("Fehler beim Hinzufügen von  " . $strEmail . " zu cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::addRecipient", TL_ERROR);
-
-        return false;
     }
 
     /**
+     * Get Reciever by E-Mail
      * @param $strEmail
      * @param $intListId
      * @return bool
@@ -104,14 +96,15 @@ class CleverReach extends \Backend{
 
             // return the Response Object
             return $objReturn;
+        } else {
+
+            $this->log("Fehler beim Einlesen von  " . $strEmail . " von cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::receiverGetByEmail", TL_ERROR);
+            return false;
         }
-
-        $this->log("Fehler beim Einlesen von  " . $strEmail . " von cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::receiverGetByEmail", TL_ERROR);
-
-        return false;
     }
 
     /**
+     * Set Reciever Inactive
      * @param $strEmail
      * @param $intListId
      * @return bool
@@ -136,12 +129,10 @@ class CleverReach extends \Backend{
                     return false;
                 }
             }
+        } else {
+            $this->log("Fehler beim Einlesen von  " . $strEmail . " von cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::receiverSetInactive", TL_ERROR);
+            return false;
         }
-
-        $this->log("Fehler beim Einlesen von  " . $strEmail . " von cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::receiverSetInactive", TL_ERROR);
-
-        return false;
-
     }
 
     /**
@@ -170,11 +161,10 @@ class CleverReach extends \Backend{
                     return false;
                 }
             }
+        } else {
+            $this->log("Fehler beim Einlesen von  " . $strEmail . " von cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::receiverSetActive", TL_ERROR);
+            return false;
         }
-
-        $this->log("Fehler beim Einlesen von  " . $strEmail . " von cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::receiverSetActive", TL_ERROR);
-
-        return false;
     }
 
     /**
@@ -200,11 +190,10 @@ class CleverReach extends \Backend{
                 return true;
 
             }
+        } else {
+            $this->log("Fehler beim Einlesen von  " . $strEmail . " von cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::receiverDelete", TL_ERROR);
+            return false;
         }
-
-        $this->log("Fehler beim Einlesen von  " . $strEmail . " von cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::receiverDelete", TL_ERROR);
-
-        return false;
     }
 
     /**
@@ -232,13 +221,18 @@ class CleverReach extends \Backend{
                     return $objReturn->data->id;
                 }
             }
+        } else {
+            $this->log("Fehler beim Anlegen der Gruppe " . $strChannel . " auf cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::GroupAdd", TL_ERROR);
+            return false;
         }
-
-        $this->log("Fehler beim Anlegen der Gruppe " . $strChannel . " auf cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::GroupAdd", TL_ERROR);
-
-        return false;
     }
 
+    /**
+     * Delete Group
+     * @param $intListId
+     * @param $strChannel
+     * @return bool
+     */
     public function groupDelete($intListId, $strChannel)
     {
         // Check if soap available
@@ -256,12 +250,73 @@ class CleverReach extends \Backend{
                 // return
                 return true;
             }
+        } else {
+            $this->log("Fehler beim Löschen der Gruppe " . $strChannel . " auf cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::groupDelete", TL_ERROR);
+            return false;
         }
+    }
 
-        $this->log("Fehler beim Anlegen der Gruppe " . $strChannel . " auf cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::groupDelete", TL_ERROR);
+    /**
+     * Get Group Details
+     * @param $intListId
+     * @param $strChannel
+     * @return bool
+     */
+    public function getGroupDetails($intListId, $strChannel)
+    {
+        // Check if soap available
+        if($this->soap)
+        {
+            // Initiate the Soap-Request
+            $objReturn = $this->soap->groupGetDetails($this->apiKey, $intListId);
 
-        return false;
+            // Check the Response
+            if($objReturn->status=="SUCCESS")
+            {
+                // Check if Group exists
+                if($intListId == $objReturn->data->id)
+                {
+                    return true;
+                }
+            }
+        }
+        else {
+            $this->log("Fehler beim Auslesen der Gruppe " . $strChannel . " auf cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::getGroupDetails", TL_ERROR);
+            return false;
+        }
+    }
 
+    public function receiverUpdateBatch($intListId, $objRecipients, $strChannel)
+    {
+        // Check if soap available
+        if($this->soap)
+        {
+            // Define and Loop the User-Array to synchronize
+            $arrUser = array();
+
+            foreach($objRecipients as $item)
+            {
+                $arrUser[] = array(
+                    'email' => $item->email
+                );
+            }
+
+            // Initiate the Soap-Request
+            $objReturn = $this->soap->receiverUpdateBatch($this->apiKey, $intListId, $arrUser);
+
+            // Check the Response
+            if($objReturn->status=="SUCCESS")
+            {
+                // Log
+                $this->log('Abonnenten in Gruppe '.$strChannel . " auf cleaverreach.de aktualisiert.", "CleverReach::receiverUpdateBatch", TL_NEWSLETTER);
+                return true;
+            }
+        }
+        else {
+            $this->log("Fehler beim Synchroniseren der Abonnenten in der Gruppe " . $strChannel . " auf cleaverreach.de - Keine Verbindung zur SOAP-Schnittstelle", "CleverReach::receiverUpdateBatch", TL_ERROR);
+
+            return false;
+        }
     }
 
 }

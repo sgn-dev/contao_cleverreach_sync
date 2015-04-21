@@ -26,6 +26,7 @@ class NewsletterRecipientsModel extends Model
     protected static $strTable = 'tl_newsletter_recipients';
 
     /**
+     * Find one Recipient by ID
      * @param $intId
      * @return mixed
      */
@@ -35,6 +36,20 @@ class NewsletterRecipientsModel extends Model
     }
 
     /**
+     * Find active Recipients by pid
+     * @param $intPId
+     * @return \Model\Collection|null
+     */
+    public static function findActiveRecipientsByPid($intPId)
+    {
+        $strIsActive = "1";
+
+        $t = static::$strTable;
+        return static::findBy(array("$t.pid=? AND $t.active=?"), array($intPId, $strIsActive));
+    }
+
+    /**
+     * Reset Flag Synchronize
      * @param $intId
      */
     public static function resetFlagSynchronizeById($intId)

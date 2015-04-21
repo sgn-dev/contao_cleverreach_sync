@@ -19,4 +19,5 @@ $GLOBALS['TL_LANG']['tl_newsletter_channel']['cleverreach_legend'] = 'Einstellun
 /**
  * Fields
  */
-$GLOBALS['TL_LANG']['tl_newsletter_channel']['clr_listId'] = array('Listen-ID', 'Geben Sie hier die entsprechende Listen-ID von cleverreach.de ein. Eine Listen-ID erhalten Sie, in dem Sie eine Gruppe in Ihrem Account bei cleverreach.de erstellen');
+$GLOBALS['TL_LANG']['tl_newsletter_channel']['clr_do_synchronize'] = array('Diesen Verteiler mit cleverreach.de synchronisieren?', 'Aktivieren Sie diese Option um den Verteiler und ALLE seine Abonennten initial mit cleverreach.de zu synchronisieren.');
+$GLOBALS['TL_LANG']['tl_newsletter_channel']['clr_listId'] = array('Listen-ID', 'Die ID wird automatisch beim Anlegen synchronisiert.');
