@@ -36,47 +36,56 @@ class Callback extends \Backend
      */
     public function HandleGroup(\DataContainer $dc)
     {
-        // TODO: Updatefunktion fehlt noch in der Schnittstelle von cleverreach.de
 
+        // check if Do Synchronize isset
+        if ( $dc->activeRecord->clr_do_synchronize == '1') {
 
-        // Insert Newslettergroup to cleverreach.de
-        $intListId = $this->objCleverReach->GroupAdd($dc->activeRecord->title);
+            // Insert Newslettergroup to cleverreach.de
+            $intListId = $this->objCleverReach->GroupAdd($dc->activeRecord->title);
 
-        // If cleverreach returns a ListID
-        if($intListId)
-        {
-            // Update ListId
-            NewsletterChannelModel::updateListId($intListId, $dc->activeRecord->id);
-
-            // Add Message
-            \Message::addConfirmation('Newsletterverteiler '.$dc->activeRecord->title.' auf cleverreach.de angelegt');
-        }
-
-        // Check if Group Exists an Update all Reciever
-        if($this->objCleverReach->getGroupDetails($dc->activeRecord->clr_listId, $dc->activeRecord->title))
-        {
-            $objChannelRecipients = NewsletterRecipientsModel::findActiveRecipientsByPid($dc->activeRecord->id);
-
-            // If there is no active Recipient in the Group
-            if($objChannelRecipients== NULL)
+            // If cleverreach returns a ListID
+            if($intListId)
             {
-                // Add Message
-                \Message::addConfirmation('Keine Synchronisation möglich, da keine aktiven Abonnenten für den Verteiler '.$dc->activeRecord->title.' verfügbar sind.');
+                // Update ListId
+                NewsletterChannelModel::updateListId($intListId, $dc->activeRecord->id);
 
+                // Add Message
+                \Message::addConfirmation('Newsletterverteiler '.$dc->activeRecord->title.' auf cleverreach.de angelegt');
+            }
+
+            // If no ListId given back
+            if ( !$intListId ) {
                 return;
             }
-            // Update active Recipients
-            else {
 
-                if($this->objCleverReach->receiverUpdateBatch($dc->activeRecord->clr_listId, $objChannelRecipients,$dc->activeRecord->title))
+            // Check if Group Exists an Update all Reciever
+            if($this->objCleverReach->getGroupDetails($dc->activeRecord->clr_listId, $dc->activeRecord->title))
+            {
+                $objChannelRecipients = NewsletterRecipientsModel::findActiveRecipientsByPid($dc->activeRecord->id);
+
+                // If there is no active Recipient in the Group
+                if($objChannelRecipients== NULL)
                 {
                     // Add Message
-                    \Message::addConfirmation('Alle aktiven Abonnenten des Verteilers '.$dc->activeRecord->title.' erfolgreich mit cleverreach.de synchronisert.');
+                    \Message::addConfirmation('Keine Synchronisation möglich, da keine aktiven Abonnenten für den Verteiler '.$dc->activeRecord->title.' verfügbar sind.');
 
                     return;
                 }
+                // Update active Recipients
+                else {
+
+                    if($this->objCleverReach->receiverUpdateBatch($dc->activeRecord->clr_listId, $objChannelRecipients,$dc->activeRecord->title))
+                    {
+                        // Add Message
+                        \Message::addConfirmation('Alle aktiven Abonnenten des Verteilers '.$dc->activeRecord->title.' erfolgreich mit cleverreach.de synchronisert.');
+
+                        return;
+                    }
+                }
             }
         }
+
+
     }
 
     /**
@@ -86,7 +95,18 @@ class Callback extends \Backend
     public function deleteGroup(\DataContainer $dc)
     {
         // Delete Group
-        $this->objCleverReach->groupDelete($dc->activeRecord->clr_listId, $dc->activeRecord->title);
+        $blnDeleteGroup = $this->objCleverReach->groupDelete($dc->activeRecord->clr_listId, $dc->activeRecord->title);
+
+        // Delete successfull
+        if ( $blnDeleteGroup ) {
+            // Add Message
+            \Message::addConfirmation('Newsletterchannel erfolgreich bei cleverreach.de gelöscht');
+
+            return;
+        }
+
+        // Add Message
+        \Message::addError('Newsletterchannel konnte nicht bei cleverreach gelöscht werden! Bitte entfernen Sie den Eintrag ggf. manuell');
 
     }
 
